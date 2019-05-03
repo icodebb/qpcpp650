@@ -23,21 +23,31 @@
 using namespace std;
 using namespace QP;
 
-enum { BSP_TICKS_PER_SEC = 100 };
+enum { BSP_TICKS_PER_SEC = 200 };
 
 void BSP_ledOff(void) {
     cout << "LED OFF" << endl;
 }
+
 void BSP_ledOn(void) {
     cout << "LED ON" << endl;
 }
+
 extern "C" void Q_onAssert(char const * const module, int loc) {
     cout << "Assertion failed in " << module << ':' << loc << endl;
     exit(-1);
 }
-void QF::onStartup(void) {}
-void QF::onCleanup(void) {}
+
+void QF::onStartup(void) {
+    cout << "onStartup()" << endl;
+}
+
+void QF::onCleanup(void) {
+    cout << "onCleanup()" << endl;
+}
+
 void QP::QF_onClockTick(void) {
+    // cout << "onClockTick()" << endl; // too frequent.
     QF::TICK_X(0U, (void *)0);  // perform the QF clock tick processing
 }
 
@@ -72,8 +82,11 @@ int main() {
 
     QF::init(); // initialize the framework
     AO_Blinky->start(1U, // priority
-                     blinky_queueSto, Q_DIM(blinky_queueSto),
-                     (void *)0, 0U); // no stack
+                     blinky_queueSto, 
+                     Q_DIM(blinky_queueSto),
+                     (void *)0, 
+                     0U
+                     ); // no stack
     return QF::run(); // run the QF application
 }
 
