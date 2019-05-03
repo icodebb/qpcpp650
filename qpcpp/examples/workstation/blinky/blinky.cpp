@@ -23,7 +23,7 @@
 using namespace std;
 using namespace QP;
 
-enum { BSP_TICKS_PER_SEC = 200 };
+enum { BSP_TICKS_PER_SEC = 500 }; // 1/2 second
 
 void BSP_ledOff(void) {
     cout << "LED OFF" << endl;
@@ -82,9 +82,9 @@ int main() {
 
     QF::init(); // initialize the framework
     AO_Blinky->start(1U, // priority
-                     blinky_queueSto, 
+                     blinky_queueSto,
                      Q_DIM(blinky_queueSto),
-                     (void *)0, 
+                     (void *)0,
                      0U
                      ); // no stack
     return QF::run(); // run the QF application
@@ -101,7 +101,7 @@ int main() {
 //${AOs::Blinky} .............................................................
 //${AOs::Blinky::Blinky} .....................................................
 Blinky::Blinky()
-: QActive(Q_STATE_CAST(&Blinky::initial)),
+    : QActive(Q_STATE_CAST(&Blinky::initial)),
     m_timeEvt(this, TIMEOUT_SIG, 0U)
 {}
 
@@ -109,6 +109,7 @@ Blinky::Blinky()
 Q_STATE_DEF(Blinky, initial) {
     //${AOs::Blinky::SM::initial}
     (void)e; // unused parameter
+    cout << "Blinky, initial." << endl;
     m_timeEvt.armX(BSP_TICKS_PER_SEC/2, BSP_TICKS_PER_SEC/2);
 
     QS_FUN_DICTIONARY(&off);
@@ -119,19 +120,23 @@ Q_STATE_DEF(Blinky, initial) {
 //${AOs::Blinky::SM::off} ....................................................
 Q_STATE_DEF(Blinky, off) {
     QP::QState status_;
+    cout << "Blinky off e->sig:" << e->sig;
     switch (e->sig) {
         //${AOs::Blinky::SM::off}
         case Q_ENTRY_SIG: {
+            cout << ", Q_ENTRY_SIG" << endl;
             BSP_ledOff();
             status_ = Q_RET_HANDLED;
             break;
         }
         //${AOs::Blinky::SM::off::TIMEOUT}
         case TIMEOUT_SIG: {
+            cout << ", TIMEOUT_SIG" << endl;
             status_ = tran(&on);
             break;
         }
         default: {
+            cout << ", default" << endl;
             status_ = super(&top);
             break;
         }
@@ -141,19 +146,23 @@ Q_STATE_DEF(Blinky, off) {
 //${AOs::Blinky::SM::on} .....................................................
 Q_STATE_DEF(Blinky, on) {
     QP::QState status_;
+    cout << "Blinky on e->sig:" << e->sig;
     switch (e->sig) {
         //${AOs::Blinky::SM::on}
         case Q_ENTRY_SIG: {
+            cout << ", Q_ENTRY_SIG" << endl;
             BSP_ledOn();
             status_ = Q_RET_HANDLED;
             break;
         }
         //${AOs::Blinky::SM::on::TIMEOUT}
         case TIMEOUT_SIG: {
+            cout << ", TIMEOUT_SIG" << endl;
             status_ = tran(&off);
             break;
         }
         default: {
+            cout << ", default" << endl;
             status_ = super(&top);
             break;
         }
